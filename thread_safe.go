@@ -1,6 +1,7 @@
 package go_set
 
 import (
+	"context"
 	"sync"
 )
 
@@ -45,14 +46,19 @@ func (s *threadSafeSet) Has(items ...interface{}) bool {
 	return s.unsafe.Has(items...)
 }
 
-func (s *threadSafeSet) Iter() <-chan interface{} {
-	ch := make(chan interface{}, s.Count())
+func (s *threadSafeSet) Iter(ctx context.Context) <-chan interface{} {
+	ch := make(chan interface{})
 	go func() {
 		s.rw.RLock()
 		defer s.rw.RUnlock()
 		defer close(ch)
 		for key := range s.unsafe {
-			ch <- key
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				ch <- key
+			}
 		}
 	}()
 	return ch

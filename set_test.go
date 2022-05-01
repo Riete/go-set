@@ -1,6 +1,7 @@
 package go_set
 
 import (
+	"context"
 	"testing"
 	"time"
 )
@@ -46,13 +47,24 @@ func TestHas(t *testing.T) {
 }
 
 func TestIter(t *testing.T) {
+	ctx1, cancel1 := context.WithCancel(context.Background())
+	ctx2, cancel2 := context.WithCancel(context.Background())
+
 	s := NewSetWithValues(true, 1, 2, 3)
 	us := NewSetWithValues(false, 1, 2, 3)
-	for i := range s.Iter() {
+	go func() {
+		time.Sleep(2 * time.Second)
+		cancel1()
+	}()
+	for i := range s.Iter(ctx1) {
 		time.Sleep(2 * time.Second)
 		t.Log("safe set:", i)
 	}
-	for i := range us.Iter() {
+	go func() {
+		time.Sleep(2 * time.Second)
+		cancel2()
+	}()
+	for i := range us.Iter(ctx2) {
 		time.Sleep(2 * time.Second)
 		t.Log("unsafe set:", i)
 	}

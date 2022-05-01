@@ -1,5 +1,9 @@
 package go_set
 
+import (
+	"context"
+)
+
 type threadUnsafeSet map[interface{}]struct{}
 
 func newUnsafeSet() Set {
@@ -36,12 +40,17 @@ func (s *threadUnsafeSet) Has(items ...interface{}) bool {
 	return true
 }
 
-func (s *threadUnsafeSet) Iter() <-chan interface{} {
-	ch := make(chan interface{}, s.Count())
+func (s *threadUnsafeSet) Iter(ctx context.Context) <-chan interface{} {
+	ch := make(chan interface{})
 	go func() {
 		defer close(ch)
 		for key := range *s {
-			ch <- key
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				ch <- key
+			}
 		}
 	}()
 	return ch
