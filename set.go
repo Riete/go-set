@@ -22,17 +22,14 @@ type Set interface {
 	All() []interface{}
 }
 
-func NewSet(safe bool) Set {
-	var s Set
-	s = newUnsafeSet()
-	if safe {
-		s = newSafeSet()
-	}
+func NewSet(items ...interface{}) Set {
+	s := newSafeSet()
+	s.Add(items...)
 	return s
 }
 
-func NewSetWithValues(safe bool, items ...interface{}) Set {
-	s := NewSet(safe)
+func NewThreadUnsafeSet(items ...interface{}) Set {
+	s := newUnsafeSet()
 	s.Add(items...)
 	return s
 }
