@@ -1,4 +1,4 @@
-package go_set
+package set
 
 import (
 	"context"
